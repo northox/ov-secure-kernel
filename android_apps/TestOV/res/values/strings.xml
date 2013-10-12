@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="app_name">TestOV</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_test_ov">TestOV</string>
+    <string name="input_param">Enter a message</string>
+    <string name="test_OV">Send</string>
+
+</resources>

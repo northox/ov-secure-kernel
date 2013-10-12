@@ -1,0 +1,10 @@
+lib-objs-y = sw_debug.o
+lib-objs-y+= sw_div.o
+lib-objs-y+= sw_mem_functions.o
+lib-objs-y+= sw_string_functions.o
+lib-objs-y+= sw_buddy.o
+lib-objs-y+= sw_semaphores_asm.o
+lib-objs-y+= sw_semaphores.o
+lib-objs-y+= sw_timer_functions.o
+lib-objs-y+= libc_sos.o
+lib-objs-y+= syscalls.o

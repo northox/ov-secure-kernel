@@ -1,0 +1,12 @@
+gui-objs-$(CONFIG_GUI_SUPPORT)=bitmap.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=button.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=color_manager.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=fontdata.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=draw_obj.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=gui_manager.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=label.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=put_string.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=set_text.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=textfield.o
+gui-objs-$(TOUCH_SUPPORT)+=touch_manager.o
+gui-objs-$(CONFIG_GUI_SUPPORT)+=window.o

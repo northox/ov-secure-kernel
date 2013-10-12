@@ -1,0 +1,323 @@
+SHELL := /bin/bash
+cur_dir=$(SDK_PATH)/otzone
+build_dir=$(cur_dir)/crypto-build
+src_dir=$(cur_dir)/src
+package_dir=$(src_dir)/package
+fs_mnt_dir=/tmp/fs_mnt
+bin_dir=$(cur_dir)/../bin
+crypto_dir=$(PACKAGE_BUILD_DIR)/openssl
+
+ifeq ($(NON_SECURE_BOOTWRAPPER_SUPPORT),y)
+KERNEL_ELF = $(bin_dir)/normal.elf
+else
+KERNEL_ELF = $(bin_dir)/normal.bin
+endif
+
+KERNEL = $(cur_dir)/normal.bin
+
+ifeq ($(CONFIG_MULTI_GUESTS_SUPPORT),y)
+ifeq ($(NON_SECURE_BOOTWRAPPER_SUPPORT),y)
+KERNEL_ELF_2 = $(bin_dir)/normal_2.elf
+else
+KERNEL_ELF2 = $(bin_dir)/normal_2.bin
+endif
+KERNEL_2 = $(cur_dir)/normal_2.bin
+
+INITRD = $(cur_dir)/linux2_initrd.bin.gz
+endif
+
+
+# Check if verbosity is ON for build process
+VERBOSE_DEFAULT    := 0
+CMD_PREFIX_DEFAULT := @
+ifdef VERBOSE
+	ifeq ("$(origin VERBOSE)", "command line")
+		VB := $(VERBOSE)
+	else
+		VB := $(VERBOSE_DEFAULT)
+	endif
+else
+	VB := $(VERBOSE_DEFAULT)
+endif
+ifeq ($(VB), 1)
+	V :=
+else
+	V := $(CMD_PREFIX_DEFAULT)
+endif
+
+# Name & Version
+export PROJECT_NAME = otzone-crypto
+export PROJECT_VERSION = 0.1
+export DEPENDENCY_FILE=$(build_dir)/.deps
+
+ifeq ($(BOARD), VE)
+export CONFIG_FILE= $(cur_dir)/config/config.ve
+export BOARD_DIR=ve
+else
+export CONFIG_FILE= $(cur_dir)/config/config.ve
+export BOARD_DIR=ve
+endif
+
+ifeq ($(ARM_ARCH), ARMV7)
+export ARCH_DIR=armv7
+endif
+
+# Include configuration file if present
+-include $(CONFIG_FILE)
+
+ifeq ($(ARM_CPU), CORTEX_A8)
+TARGET_CCFLAGS += -DCONFIG_CORTEX_A8=1 -mcpu=cortex-a8
+TARGET_ASMFLAGS += -DCONFIG_CORTEX_A8=1 -mcpu=cortex-a8
+export PLATFORM_DIR=Cortex-A8
+endif
+
+ifeq ($(ARM_CPU), CORTEX_A9)
+TARGET_CCFLAGS += -DCONFIG_CORTEX_A9=1 -mcpu=cortex-a9
+TARGET_ASMFLAGS += -DCONFIG_CORTEX_A9=1 -mcpu=cortex-a9
+export PLATFORM_DIR=Cortex-A9
+endif
+
+ifeq ($(ARM_CPU), CORTEX_A15)
+TARGET_CCFLAGS += -DCONFIG_CORTEX_A15=1 -march=armv7-a
+TARGET_ASMFLAGS += -DCONFIG_CORTEX_A15=1 -march=armv7-a
+export PLATFORM_DIR=Cortex-A15
+endif
+
+ifeq ($(OTZONE_ASYNC_NOTIFY_SUPPORT), y)
+TARGET_CCFLAGS += -DOTZONE_ASYNC_NOTIFY_SUPPORT=y
+TARGET_ASMFLAGS += -DOTZONE_ASYNC_NOTIFY_SUPPORT=y
+endif
+
+ifeq ($(CONFIG_MULTI_GUESTS_SUPPORT),y)
+ifneq ($(BOARD), zynq7)
+TARGET_CCFLAGS += -DSCHEDULE_HIGH_PRIORITY_GUEST=1
+TARGET_ASMFLAGS += -DSCHEDULE_HIGH_PRIORITY_GUEST=1
+endif
+endif
+
+# Setup path of directories
+export lib_dir=$(src_dir)/lib
+export cpu_arch_dir=$(src_dir)/arch/arm/$(ARCH_DIR)
+export cpu_platform_dir=$(src_dir)/arch/arm/$(ARCH_DIR)/$(PLATFORM_DIR)
+export drivers_common_dir=$(src_dir)/drivers/common
+export drivers_dir=$(src_dir)/drivers/$(BOARD_DIR)
+export core_dir=$(src_dir)/core
+export apps_dir=$(src_dir)/apps
+export fs_dir=$(src_dir)/fs
+export gui_dir=$(src_dir)/gui
+export gui_keys_dir=$(gui_dir)/keyboard
+export package_src_dir=$(package_dir)/src
+export module_src_dir=$(src_dir)/apps
+offsets-file= $(cpu_arch_dir)/include/asm-offsets.h
+LD_SCRIPT	= $(drivers_dir)/linker.ld
+
+# Setup list of objects for compilation
+lib-object-mks=$(shell if [[ -d $(lib_dir) ]]; then find $(lib_dir) -iname "crypto-objects.mk" | sort -r; fi)
+core-object-mks=$(shell if [[ -d $(core_dir) ]]; then find $(core_dir) -iname "objects.mk" | sort -r; fi)
+apps-object-mks=$(shell if [[ -d $(apps_dir) ]]; then find $(apps_dir) -iname "objects.mk" | sort -r; fi)
+cpu-object-mks=$(shell if [ -d $(cpu_arch_dir) ]; then find $(cpu_arch_dir) -iname "objects.mk" | sort -r; fi)
+cpu-platform-mks=$(shell if [ -d $(cpu_platform_dir) ]; then find $(cpu_platform_dir) -iname "platform_objects.mk" | sort -r; fi)
+drivers-common-object-mks=$(shell if [ -d $(drivers_common_dir) ]; then find $(drivers_common_dir) -iname "objects.mk" | sort -r; fi)
+drivers-object-mks=$(shell if [ -d $(drivers_dir) ]; then find $(drivers_dir) -iname "objects.mk" | sort -r; fi)
+fs-object-mks=$(shell if [ -d $(fs_dir) ]; then find $(fs_dir) -iname "objects.mk" | sort -r; fi)
+gui-object-mks=$(shell if [ -d $(gui_dir) ]; then find $(gui_dir) -iname "objects.mk" | sort -r; fi)
+gui-keys-object-mks=$(shell if [ -d $(gui_keys_dir) ]; then find $(gui_keys_dir) -iname "objects.mk" | sort -r; fi)
+package-object-mks=$(shell if [ -d $(package_src_dir) ]; then find $(package_src_dir) -iname "objects.mk" | sort -r; fi)
+
+
+include $(lib-object-mks) 
+include $(core-object-mks) 
+include $(apps-object-mks) 
+include $(drivers-common-object-mks) 
+include $(drivers-object-mks) 
+include $(cpu-object-mks) 
+include $(cpu-platform-mks)
+include $(fs-object-mks)
+include $(gui-object-mks)
+include $(gui-keys-object-mks)
+include $(package-object-mks) 
+
+objs-y=$(foreach obj,$(cpu-objs-y),$(build_dir)/arch/arm/$(ARCH_DIR)/$(obj))
+objs-y+=$(foreach obj,$(lib-objs-y),$(build_dir)/lib/$(obj))
+objs-y+=$(foreach obj,$(core-objs-y),$(build_dir)/core/$(obj))
+objs-y+=$(foreach obj,$(apps-objs-y),$(build_dir)/apps/$(obj))
+objs-y+=$(foreach obj,$(fs-objs-y),$(build_dir)/fs/$(obj))
+objs-y+=$(foreach obj,$(gui-objs-y),$(build_dir)/gui/$(obj))
+objs-y+=$(foreach obj,$(gui-keys-objs-y),$(build_dir)/gui/keyboard/$(obj))
+objs-y+=$(foreach obj,$(drivers-common-objs-y),$(build_dir)/drivers/common/$(obj))
+objs-y+=$(foreach obj,$(drivers-objs-y),$(build_dir)/drivers/$(BOARD_DIR)/$(obj))
+objs-y+=$(foreach obj,$(cpu-platform-objs-y),$(build_dir)/arch/arm/$(ARCH_DIR)/$(PLATFORM_DIR)/$(obj))
+objs-y+=$(foreach obj,$(package-objs-y),$(build_dir)/package/src/$(obj))
+
+module-objs-y=$(foreach obj,$(modules-objs-y),$(build_dir)/apps/$(obj))
+# Setup list of deps files for compilation
+deps-y=$(objs-y:.o=.dep)
+
+# Setup list of targets for compilation
+targets-y=$(build_dir)/otzone-crypto.elf
+
+#targets-y+=$(build_dir)/otzone.bin
+
+
+# Setup compilation environment
+cpp=$(CROSS_COMPILE_NEWLIB)cpp
+cppflags=-I$(SDK_PATH)/include
+cppflags+=-I$(src_dir)/lib/include
+cppflags+=-I$(src_dir)/core/include
+cppflags+=-I$(src_dir)/apps/include
+cppflags+=-I$(src_dir)/fs/include
+cppflags+=-I$(src_dir)/gui/include
+cppflags+=-I$(src_dir)/gui/keyboard/include
+cppflags+=-I$(src_dir)/arch/arm/$(ARCH_DIR)/include
+cppflags+=-I$(src_dir)/drivers/common/include
+cppflags+=-I$(package_src_dir)/include
+
+cppflags+=-I$(src_dir)/drivers/$(BOARD_DIR)/include
+cppflags+=-I$(src_dir)/arch/arm/$(ARCH_DIR)/$(PLATFORM_DIR)/include
+cppflags+=-I$(crypto_dir)/include
+cppflags+=-I$(crypto_dir)/crypto/modes
+
+cc=$(CROSS_COMPILE_NEWLIB)gcc
+#cflags=-g -Wall -nostdlib -D_OTZ_NO_LIBC_BUILD=1
+cflags=-g -Wall -nostdlib -D_OTZ_NO_LIBC_BUILD=1 -D_CRYPTO_BUILD_ -D__bare_metal__
+cflags+=-msoft-float -mno-thumb-interwork -marm -fno-short-enums
+ifeq ($(CONFIG_NEON_SUPPORT), y)
+cflags+=-mfloat-abi=softfp -mfpu=neon 
+endif
+cflags+=$(cppflags) $(TARGET_CCFLAGS)
+as=$(CROSS_COMPILE_NEWLIB)gcc
+#asflags=-g -Wall -nostdlib -D__ASSEMBLY__ 
+asflags=-g -Wall -D__ASSEMBLY__ 
+asflags+= -mno-thumb-interwork -marm
+ifeq ($(CONFIG_NEON_SUPPORT), y)
+asflags+= -mfpu=neon
+endif
+asflags+=$(cppflags) $(TARGET_ASMFLAGS)
+ar=$(CROSS_COMPILE_NEWLIB)ar
+arflasgs=rcs
+ld=$(CROSS_COMPILE_NEWLIB)gcc
+#ldflags=-g -Wall -nostdlib 
+ldflags=-g -Wall
+ldflags+=-Wl,-T$(LD_SCRIPT) -nostartfiles
+objcopy=$(CROSS_COMPILE_NEWLIB)objcopy
+nm=$(CROSS_COMPILE_NEWLIB)nm
+
+final-objs-y=$(objs-y)
+crypto_libs = -L$(crypto_dir)/ -lcrypto
+crypto_libs+= -L$(crypto_dir)/ -lssl
+
+# Default rule "make"
+.PHONY: all
+all: $(CONFIG_FILE) $(offsets-file) $(DEPENDENCY_FILE) KERNELS $(targets-y)
+
+test:
+	@echo $(objs-y)
+
+-include $(DEPENDENCY_FILE)
+$(DEPENDENCY_FILE): $(deps-y)
+	@echo "where is dep file"
+	$(V)cat $(deps-y) > $(DEPENDENCY_FILE)
+
+# Rules to build .S and .c files
+#$(build_dir)/otzone.bin: $(build_dir)/otzone.elf
+#	$(V)mkdir -p `dirname $@`
+#	$(if $(V), @echo " (objcopy)   $(subst $(build_dir)/,,$@)")
+#	$(V)$(objcopy) -O binary $< $@
+
+KERNELS : $(KERNEL) $(KERNEL_2)
+
+$(KERNEL) :
+ifeq ($(NON_SECURE_BOOTWRAPPER_SUPPORT),y)
+	$(V)$(objcopy) -O binary $(KERNEL_ELF) $@
+else
+	cp $(KERNEL_ELF) $(KERNEL)
+endif
+$(KERNEL_2) :
+ifeq ($(NON_SECURE_BOOTWRAPPER_SUPPORT),y)
+	$(V)$(objcopy) -O binary $(KERNEL_ELF_2) $@
+else
+	cp $(KERNEL_ELF_2) $(KERNEL_2)
+endif
+
+$(build_dir)/otzone-crypto.elf: $(final-objs-y) KERNELS
+	$(V)mkdir -p `dirname $@`
+	$(if $(V), @echo " (ld)        $(subst $(build_dir)/,,$@)")
+	$(V)$(ld) $(final-objs-y) $(crypto_libs) $(ldflags) -o $@
+	$(V)cp -f $@ $(bin_dir)
+	$(V)rm -f $(KERNEL) $(KERNEL_2) $(INITRD)
+
+
+
+modules:$(module-objs-y)
+
+ifeq ($(CONFIG_SW_ELF_LOADER_SUPPORT),y)
+	mkdir -p $(fs_mnt_dir)
+	sudo mount -t vfat -o loop -w $(SDK_PATH)/otzone/mmc_fs $(fs_mnt_dir)
+	sudo cp $(module-objs-y) $(fs_mnt_dir)/apps/
+	sleep 1
+	sudo umount $(fs_mnt_dir)
+endif
+$(build_dir)/%.dep: $(src_dir)/%.S
+	@echo "gen dep file"
+	$(V)mkdir -p `dirname $@`
+	$(if $(V), @echo " (as-dep)    $(subst $(build_dir)/,,$@)")
+	$(V)echo -n `dirname $@`/ > $@
+	$(V)$(as) $(asflags) -I`dirname $<` -MM $< >> $@
+
+$(build_dir)/%.dep: $(src_dir)/%.c
+	$(V)mkdir -p `dirname $@`
+	$(if $(V), @echo " (cc-dep)    $(subst $(build_dir)/,,$@)")
+	$(V)echo -n `dirname $@`/ > $@
+	$(V)$(cc) $(cflags) -I`dirname $<` -MM $< >> $@
+
+$(build_dir)/%.o: $(src_dir)/%.S
+	$(V)mkdir -p `dirname $@`
+	$(if $(V), @echo " (as)        $(subst $(build_dir)/,,$@)")
+	$(V)$(as) $(asflags) -I`dirname $<` -c $< -o $@
+
+$(build_dir)/%.o: $(build_dir)/%.S
+	$(V)mkdir -p `dirname $@`
+	$(if $(V), @echo " (as)        $(subst $(build_dir)/,,$@)")
+	$(V)$(as) $(asflags) -I`dirname $<` -c $< -o $@
+
+$(build_dir)/%.o: $(src_dir)/%.c
+	$(V)mkdir -p `dirname $@`
+	$(if $(V), @echo " (cc)        $(subst $(build_dir)/,,$@)")
+	$(V)$(cc) $(cflags) -I`dirname $<` -c $< -o $@
+
+$(build_dir)/%.o: $(build_dir)/%.c
+	$(V)mkdir -p `dirname $@`
+	$(if $(V), @echo " (cc)        $(subst $(build_dir)/,,$@)")
+	$(V)$(cc) $(cflags) -I`dirname $<` -c $< -o $@
+
+define sed-y
+        "/^->/{s:->#\(.*\):/* \1 */:; \
+        s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+        s:->::; p;}"
+endef
+
+$(cpu_arch_dir)/asm-offsets.s: $(cpu_arch_dir)/asm-offsets.c
+	$(V)$(cc) $(cflags) -S -I`dirname $<` -c $< -o $@
+
+$(offsets-file): $(cpu_arch_dir)/asm-offsets.s
+	sed -ne $(sed-y) $< >> $@
+
+# Rule for "make clean"
+.PHONY: clean
+clean:
+ifeq ($(build_dir),$(cur_dir)/crypto-build)
+	$(if $(V), @echo " (rm)        $(build_dir)")
+	$(V)rm -rf $(build_dir)
+endif
+	rm -f $(offsets-file)
+	rm -f $(cpu_arch_dir)/asm-offsets.s; 
+.PHONY: tags
+tags:
+	$(V)ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .
+	$(V)echo "Generating tags ..."
+
+.PHONY: cscope
+cscope:
+	$(V)echo "Generating cscope database ..."
+	$(V)find ./ -name "*.[CHSchs]" > cscope.files
+	$(V)cscope -bqk

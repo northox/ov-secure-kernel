@@ -1,0 +1,13 @@
+<resources>
+
+    <string name="app_name">TestDrm</string>
+    <!-- <string name="hello_world">Hello world!</string> -->
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Start Video !</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_test_drm">TestDrm</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_display_message">TestDrm</string>
+    <string name="textview_string">""</string>
+
+</resources>

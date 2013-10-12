@@ -1,0 +1,28 @@
+ELF Loader Documentation:
+
+These are the things that must be done so that the application can be loaded by
+the ELF Loader.
+
+* The entry_func field in the 'sa_config_t' structure must be set to the name of
+* the function that needs to be executed first
+
+* The elf_flag field in the 'sa_config_t' structure must be set to ELF_FLAG 
+
+* The entry_point field in the 'sa_config_t' structure must be set to 0, the elf
+* loader will handle the relocations automatically and set the entry_point
+* address to the address of the function specified in the 'entry_func' field
+
+* The process_name field of the 'sa_config_t' structure must be set to the
+* appropriate process name, say 'process_otz_mutex_test_svc' for mutex_test_task
+
+* The process field of the 'sa_config_t' structure must be set to 0, the elf
+* loader will set its value to the appropriate address of the function specified
+* in process_name field.
+
+* When the application needs function from the kernel, the appropriate symbol
+* must be exported first by EXPORT_SYMBOL MACRO.
+
+* Also , make sure CONFIG_SW_ELF_LOADER_SUPPORT is set to 'y' in the appropriate
+* config file
+
+* Elf loader depends on file system support. 

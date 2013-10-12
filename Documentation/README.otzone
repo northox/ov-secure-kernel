@@ -1,0 +1,89 @@
+Otzone Secure OS Configurations
+-------------------------------
+
+CONFIG_FILESYSTEM_SUPPORT:
+	Enables filesystem support.
+
+CONFIG_GUI_SUPPORT:
+	Enables GUI(Graphical User Interface) support.
+
+CONFIG_NEON_SUPPORT:
+	Enables Neon support for executing neon based intrinsics and the instructions.
+
+TOUCH_SUPPORT
+	Enables the touch screen support in TEE.
+
+TIMER_NOT_DEFINED
+	Disables the secure timer support.
+
+CONFIG_MULTI_GUESTS_SUPPORT:
+	Enables trustzone based hypervisor for running multiple
+	guests. 
+	The number of guests is selected by GUESTS_NO macro.
+
+CONFIG_SW_DEDICATED_TEE:
+	Runs secure OS in a dedicated core.
+
+CONFIG_SW_BL
+	Enables the support for secure bootloader.
+
+CONFIG_SW_MULTICORE:
+	Enables support for booting SMP kernels(Linux SMP for example)
+	in non secure world. 
+	Number of cores to be enabled is selected by MAX_CORES macro.
+
+CONFIG_SW_NOBOOTLOADER:
+	Enables support for directly running the secure world OS on
+	target without running a bootloader. A typical example is
+	fastmodel emulation targets. Currently this is used to handle
+	the multicore booting.
+
+CONFIG_KSPACE_PROTECTION:
+	Runs tasks in a lower privelege(user mode) than the
+	kernel(system mode).
+
+CONFIG_CACHE_L2X0
+	Enables the L2 cache controller support in Secure OS. 
+	Currently it is to co-operate to work along with guest. 
+	for e.g. Few PL310 controller operations are supported 
+	from secure world.
+
+CONFIG_CACHE_PL310
+	Enables the PL310 L2 Cache controller support.
+
+CONFIG_GP_TEST
+	Enables to test Global platform internal API specification.
+CONFIG_SW_ELF_LOADER_SUPPORT
+	Enables the dynamic loading of modules 
+
+GLOBAL PLATFORM API CRYPTOGRAPHIC LIBRARY SUPPORT
+-------------------------------------------------
+
+1. Openssl is being used as a backend for providing global platform
+   crypto api support
+
+2. Certain cryptographic functions specified by the global paltform
+   api have not been implemented, mainly due to lack of corresponding
+   openssl alternatives.
+
+3. Here is a partial list of algorithms implemented --
+	
+	3.1 Digest algorithms
+		MD5, SHA1, SHA224, SHA256, SHA384, SHA512
+	
+	3.2 MAC algorithms
+		MD5, SHA1, SHA224, SHA256, SHA384, SHA512
+	
+	3.3 Cipher algorithms
+		AES-128-CBC, AES-128-ECB, AES-128-CTR, AES-128-XTS,
+		DES-CBC, DES-ECB, Triple-DES (ECB & CBC)
+
+	A few more certificate key exchange algorithms have also been
+	implemented, and once they pass internal tests, the method to
+	use them would be documented. 
+	
+4. The file crypto_tests.c, located in tzone_sdk/otzone/src/apps,
+   gives the method to invoke the global platform api's to use the
+   underlying openssl libraries.
+
+
