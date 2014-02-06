@@ -1,0 +1,32 @@
+# Make file for libsdl
+ifndef SDK_PATH
+$(error SDK_PATH must be defined before this file is included)
+endif
+
+ifndef CROSS_COMPILE_NEWLIB
+$(error CROSS_COMPILE_NEWLIB must be defined and point to a tool chain with newlib.)
+endif
+
+export SDL_EXTRACT_DIR:=$(PACKAGE_BUILD_DIR)/SDL-1.2.15
+export SDL_TAR_FILE:=SDL-1.2.15.tar.gz
+export SDL_DIR:=$(PACKAGE_BUILD_DIR)/libsdl
+
+INCLUDES:=  -I$(SDL_DIR)/include
+DEFINES:= $(INCLUDES) -Wall -D_MALLOC_PAGE_SIZE_=1048576 -D_SOS
+export CFLAGS += $(DEFINES)
+export CXXFLAGS:=$CFLAGS
+
+
+.PHONY: all
+all: patch make
+
+make:
+	cd $(SDL_DIR); $(MAKE);
+
+patch:
+	mkdir -p $(PACKAGE_BUILD_DIR); \
+	if [ ! -d ${SDL_DIR} ]; then \
+	cd $(PACKAGE_BUILD_DIR) ; tar -vxzf $(PACKAGE_STORAGE_DIR)/$(SDL_TAR_FILE) ; mv $(SDL_EXTRACT_DIR) $(SDL_DIR); \
+	cd $(SDL_DIR); patch -p1 < $(PACKAGE_PATCHES_DIR)/libsdl.patch; \
+	fi
+

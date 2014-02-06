@@ -1,0 +1,32 @@
+# Make file for ffmpeg
+ifndef SDK_PATH
+$(error SDK_PATH must be defined before this file is included)
+endif
+
+ifndef CROSS_COMPILE_NEWLIB
+$(error CROSS_COMPILE_NEWLIB must be defined and point to a tool chain with newlib.)
+endif
+
+export FFMPEG_TAR_FILE:=ffmpeg-git-26th-April-2012.tar.bz2
+export FFMPEG_DIR:=$(PACKAGE_BUILD_DIR)/ffmpeg
+export SDL_DIR:=$(PACKAGE_BUILD_DIR)/libsdl
+
+INCLUDES:=  -I$(SDL_DIR)/include
+DEFINES:= $(INCLUDES)
+export CFLAGS += $(DEFINES)
+export CXXFLAGS += $(DEFINES)
+export LDFLAGS += -L$(SDL_DIR) -lSDL
+
+.PHONY: all
+all: patch make
+
+make:
+	$(MAKE) -C $(FFMPEG_DIR);
+
+patch:
+	mkdir -p $(PACKAGE_BUILD_DIR); \
+	if [ ! -d ${FFMPEG_DIR} ]; then \
+	cd $(PACKAGE_BUILD_DIR) ; tar -jxf $(PACKAGE_STORAGE_DIR)/$(FFMPEG_TAR_FILE); \
+	cd $(FFMPEG_DIR); patch -p1 < $(PACKAGE_PATCHES_DIR)/ffmpeg.patch; \
+	fi
+

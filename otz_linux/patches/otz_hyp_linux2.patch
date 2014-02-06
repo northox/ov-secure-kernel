@@ -1,0 +1,28 @@
+diff -Nuar '--exclude=*~' '--exclude=boot' '--exclude=vmlinux' '--exclude=*.gzip' '--exclude=*.cmd' '--exclude=*.svn' '--exclude=*.elf' '--exclude=*.o' otz_linux/linux-otz/arch/arm/mach-vexpress/include/mach/memory.h otz_linux_2/linux-otz/arch/arm/mach-vexpress/include/mach/memory.h
+--- ./arch/arm/mach-vexpress/include/mach/memory.h	2012-09-01 15:42:46.000000000 +0530
++++ ./arch/arm/mach-vexpress/include/mach/memory.h	2012-09-01 15:42:24.000000000 +0530
+@@ -23,7 +23,7 @@
+ #ifdef CONFIG_VEXPRESS_ORIGINAL_MEMORY_MAP
+ #define PLAT_PHYS_OFFSET		UL(0x60000000)
+ #elif defined(CONFIG_VEXPRESS_EXTENDED_MEMORY_MAP)
+-#define PLAT_PHYS_OFFSET		UL(0x80000000)
++#define PLAT_PHYS_OFFSET		UL(0x88000000)
+ 
+ #ifdef CONFIG_SPARSEMEM
+ #define MAX_PHYSMEM_BITS	36
+diff -Nuar '--exclude=*~' '--exclude=boot' '--exclude=vmlinux' '--exclude=*.gzip' '--exclude=*.cmd' '--exclude=*.svn' '--exclude=*.elf' '--exclude=*.o' otz_linux/linux-otz/arch/arm/mach-vexpress/Makefile.boot otz_linux_2/linux-otz/arch/arm/mach-vexpress/Makefile.boot
+--- ./arch/arm/mach-vexpress/Makefile.boot	2012-08-10 11:12:26.000000000 +0530
++++ ./arch/arm/mach-vexpress/Makefile.boot	2012-09-03 09:59:45.000000000 +0530
+@@ -4,9 +4,9 @@
+ initrd_phys-y	:= 0x60800000
+ else
+ ifeq ($(CONFIG_VEXPRESS_EXTENDED_MEMORY_MAP),y)
+-   zreladdr-y	:= 0x80008000
+-params_phys-y	:= 0x80000100
+-initrd_phys-y	:= 0x80800000
++   zreladdr-y	:= 0x88008000
++params_phys-y	:= 0x88000100
++initrd_phys-y	:= 0x88800000
+ endif
+ endif
+ 

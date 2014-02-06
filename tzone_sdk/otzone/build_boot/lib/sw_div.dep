@@ -1,0 +1,4 @@
+/home/user/devel/ov-secure-kernel/otzone/build_boot/lib/sw_div.o: /home/user/devel/ov-secure-kernel/otzone/src/lib/sw_div.c \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_debug.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_types.h \
+ /home/user/devel/ov-secure-kernel/include/sw_common_types.h

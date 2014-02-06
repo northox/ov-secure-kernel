@@ -1,0 +1,75 @@
+/home/user/devel/ov-secure-kernel/otzone/build_boot/arch/arm/armv7//home/user/devel/ov-secure-kernel/otzone/build_boot/arch/arm/armv7//home/user/devel/ov-secure-kernel/otzone/build_boot/arch/arm/armv7//home/user/devel/ov-secure-kernel/otzone/build_boot/arch/arm/armv7//home/user/devel/ov-secure-kernel/otzone/build_boot/lib/sw_debug.o: /home/user/devel/ov-secure-kernel/otzone/src/lib/sw_debug.c \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/elf_loader.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/task.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_types.h \
+ /home/user/devel/ov-secure-kernel/include/sw_common_types.h \
+ /home/user/devel/ov-secure-kernel/include/sw_list.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/global.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/drivers/ve/include/sw_board.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/drivers/ve/include/sw_board_asm.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_data.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/page_table.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_asm.h \
+ /home/user/devel/ov-secure-kernel/include/smc_id.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/sw_mcore.h \
+ /home/user/devel/ov-secure-kernel/include/otz_common.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/sw_timer.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_semaphores.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_task.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_wait.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_debug.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_string_functions.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/drivers/common/include/uart.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/sw_modinit.h
+/home/user/devel/ov-secure-kernel/otzone/build_boot/lib/sw_div.o: /home/user/devel/ov-secure-kernel/otzone/src/lib/sw_div.c \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_debug.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_types.h \
+ /home/user/devel/ov-secure-kernel/include/sw_common_types.h
+/home/user/devel/ov-secure-kernel/otzone/build_boot/lib/sw_mem_functions.o: \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/sw_mem_functions.c \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_debug.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_types.h \
+ /home/user/devel/ov-secure-kernel/include/sw_common_types.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_mem_functions.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_buddy.h \
+ /home/user/devel/ov-secure-kernel/include/sw_list.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/elf_loader.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/task.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/global.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/drivers/ve/include/sw_board.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/drivers/ve/include/sw_board_asm.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_data.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/page_table.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_asm.h \
+ /home/user/devel/ov-secure-kernel/include/smc_id.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/sw_mcore.h \
+ /home/user/devel/ov-secure-kernel/include/otz_common.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/sw_timer.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_semaphores.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_task.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_wait.h
+/home/user/devel/ov-secure-kernel/otzone/build_boot/lib/sw_string_functions.o: \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/sw_string_functions.c \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_debug.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_types.h \
+ /home/user/devel/ov-secure-kernel/include/sw_common_types.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_string_functions.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/elf_loader.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/task.h \
+ /home/user/devel/ov-secure-kernel/include/sw_list.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/global.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/drivers/ve/include/sw_board.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/drivers/ve/include/sw_board_asm.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_data.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/page_table.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_asm.h \
+ /home/user/devel/ov-secure-kernel/include/smc_id.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/sw_mcore.h \
+ /home/user/devel/ov-secure-kernel/include/otz_common.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/core/include/sw_timer.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_semaphores.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/arch/arm/armv7/include/cpu_task.h \
+ /home/user/devel/ov-secure-kernel/otzone/src/lib/include/sw_wait.h

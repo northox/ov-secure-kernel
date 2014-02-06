@@ -1,0 +1,13 @@
+# Config file for 3rd party packages
+CONFIG_LIBSDL=n
+
+# FFMPEG need SDL package. Need to create depenency support!!
+CONFIG_FFMPEG=n
+
+#To enable the usage of openssl libraries, also set the variable ENABLE_LIBCRYPT
+#to y in the Makefile found in the directory tzone_sdk
+#Also make sure that you have a newlib enabled toolchain and that
+#the environment variable CROSS_COMPILE_NEWLIB is defined appropriately.
+#For example in bash -- export CROSS_COMPILE_NEWLIB=arm-none-eabi-
+CONFIG_CRYPTO=n
+

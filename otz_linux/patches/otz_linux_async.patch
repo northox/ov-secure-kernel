@@ -1,0 +1,114 @@
+diff -pru ./arch/arm/include/asm/hardirq.h ../linux-otz-new/arch/arm/include/asm/hardirq.h
+--- ./arch/arm/include/asm/hardirq.h	2012-05-14 16:05:20.790797779 +0530
++++ ./arch/arm/include/asm/hardirq.h	2012-05-14 13:41:29.373923000 +0530
+@@ -5,7 +5,11 @@
+ #include <linux/threads.h>
+ #include <asm/irq.h>
+ 
++#ifdef OTZONE_ASYNC_NOTIFY_SUPPORT
++#define NR_IPI	6
++#else
+ #define NR_IPI	5
++#endif
+ 
+ typedef struct {
+ 	unsigned int __softirq_pending;
+diff -pru ./arch/arm/include/asm/smp.h ../linux-otz-new/arch/arm/include/asm/smp.h
+--- ./arch/arm/include/asm/smp.h	2012-05-14 16:05:20.797797566 +0530
++++ ./arch/arm/include/asm/smp.h	2012-05-14 13:40:38.350860000 +0530
+@@ -100,4 +100,10 @@ extern void arch_send_call_function_ipi_
+ void smp_timer_broadcast(const struct cpumask *mask);
+ #endif
+ 
++#ifdef OTZONE_ASYNC_NOTIFY_SUPPORT
++typedef void (ipi_secure_notify_handler)(struct pt_regs *regs);
++int register_secure_notify_handler(ipi_secure_notify_handler handler);
++int unregister_secure_notify_handler(void);
++#endif
++
+ #endif /* ifndef __ASM_ARM_SMP_H */
+diff -pru ./arch/arm/kernel/smp.c ../linux-otz-new/arch/arm/kernel/smp.c
+--- ./arch/arm/kernel/smp.c	2012-05-14 16:05:20.812766431 +0530
++++ ./arch/arm/kernel/smp.c	2012-05-14 15:47:27.663923000 +0530
+@@ -47,12 +47,19 @@
+  */
+ struct secondary_data secondary_data;
+ 
++#ifdef OTZONE_ASYNC_NOTIFY_SUPPORT
++static ipi_secure_notify_handler *secure_notify_handler = NULL;
++#endif
++
+ enum ipi_msg_type {
+ 	IPI_TIMER = 2,
+ 	IPI_RESCHEDULE,
+ 	IPI_CALL_FUNC,
+ 	IPI_CALL_FUNC_SINGLE,
+ 	IPI_CPU_STOP,
++#ifdef OTZONE_ASYNC_NOTIFY_SUPPORT
++    IPI_SECURE_NOTIFY,
++#endif
+ };
+ 
+ int __cpuinit __cpu_up(unsigned int cpu)
+@@ -386,6 +393,9 @@ static const char *ipi_types[NR_IPI] = {
+ 	S(IPI_CALL_FUNC, "Function call interrupts"),
+ 	S(IPI_CALL_FUNC_SINGLE, "Single function call interrupts"),
+ 	S(IPI_CPU_STOP, "CPU stop interrupts"),
++#ifdef OTZONE_ASYNC_NOTIFY_SUPPORT
++	S(IPI_SECURE_NOTIFY, "Secure kernel notification"),
++#endif
+ };
+ 
+ void show_ipi_list(struct seq_file *p, int prec)
+@@ -489,7 +499,12 @@ asmlinkage void __exception_irq_entry do
+ 	case IPI_CPU_STOP:
+ 		ipi_cpu_stop(cpu);
+ 		break;
+-
++#ifdef OTZONE_ASYNC_NOTIFY_SUPPORT
++    case IPI_SECURE_NOTIFY:
++        if(secure_notify_handler)
++            secure_notify_handler(regs);
++        break;
++#endif
+ 	default:
+ 		printk(KERN_CRIT "CPU%u: Unknown IPI message 0x%x\n",
+ 		       cpu, ipinr);
+@@ -530,3 +545,21 @@ int setup_profiling_timer(unsigned int m
+ {
+ 	return -EINVAL;
+ }
++
++#ifdef OTZONE_ASYNC_NOTIFY_SUPPORT
++int register_secure_notify_handler(ipi_secure_notify_handler handler)
++{
++    secure_notify_handler = handler;   
++    return 0;
++}
++
++int unregister_secure_notify_handler(void)
++{
++    secure_notify_handler = NULL;   
++    return 0;
++}
++
++
++EXPORT_SYMBOL(register_secure_notify_handler);
++EXPORT_SYMBOL(unregister_secure_notify_handler);
++#endif
+--- ./arch/arm/common/gic_old.c	2012-09-03 19:14:12.395033150 +0530
++++ ./arch/arm/common/gic.c	2012-09-01 18:59:39.728770964 +0530
+@@ -396,11 +396,13 @@ static void __init gic_dist_init(struct 
+ 		writel_relaxed(0, base + GIC_DIST_CONFIG + i * 4 / 16);
+ 
+ 
++#ifndef OTZONE_AMP_SUPPORT
+ 	/*
+ 	 * Set all global interrupts to this CPU only.
+ 	 */
+ 	for (i = 32; i < gic_irqs; i += 4)
+ 		writel_relaxed(cpumask, base + GIC_DIST_TARGET + i * 4 / 4);
++#endif
+ 
+     /*
+ 	 * Set priority on all global interrupts.

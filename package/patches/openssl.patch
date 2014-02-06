@@ -1,0 +1,386 @@
+diff -purN openssl-1.0.1c/crypto/bio/bio.h openssl-newlib-1.0.1c/crypto/bio/bio.h
+--- openssl-1.0.1c/crypto/bio/bio.h	2012-03-06 19:17:26.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/bio/bio.h	2012-06-14 18:05:54.372708825 +0530
+@@ -64,7 +64,10 @@
+ #ifndef OPENSSL_NO_FP_API
+ # include <stdio.h>
+ #endif
++
++#ifndef __bare_metal__
+ #include <stdarg.h>
++#endif
+ 
+ #include <openssl/crypto.h>
+ 
+@@ -757,14 +760,16 @@ void BIO_copy_next_retry(BIO *b);
+ #else
+ #  define __bio_h__attr__(x)
+ #endif
++#ifndef __bare_metal__
+ int BIO_printf(BIO *bio, const char *format, ...)
+ 	__bio_h__attr__((__format__(__printf__,2,3)));
+ int BIO_vprintf(BIO *bio, const char *format, va_list args)
+ 	__bio_h__attr__((__format__(__printf__,2,0)));
+-int BIO_snprintf(char *buf, size_t n, const char *format, ...)
+-	__bio_h__attr__((__format__(__printf__,3,4)));
+ int BIO_vsnprintf(char *buf, size_t n, const char *format, va_list args)
+ 	__bio_h__attr__((__format__(__printf__,3,0)));
++int BIO_snprintf(char *buf, size_t n, const char *format, ...)
++	__bio_h__attr__((__format__(__printf__,3,4)));
++#endif
+ #undef __bio_h__attr__
+ 
+ /* BEGIN ERROR CODES */
+diff -purN openssl-1.0.1c/crypto/bio/b_print.c openssl-newlib-1.0.1c/crypto/bio/b_print.c
+--- openssl-1.0.1c/crypto/bio/b_print.c	2007-09-15 22:35:11.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/bio/b_print.c	2012-06-14 18:13:31.328695324 +0530
+@@ -132,9 +132,16 @@ static void fmtint     (char **, char **
+ static void fmtfp      (char **, char **, size_t *, size_t *,
+ 			LDOUBLE, int, int, int);
+ static void doapr_outch (char **, char **, size_t *, size_t *, int);
++
++#ifndef __bare_metal__
+ static void _dopr(char **sbuffer, char **buffer,
+ 		  size_t *maxlen, size_t *retlen, int *truncated,
+ 		  const char *format, va_list args);
++#else
++static void _dopr(char **sbuffer, char **buffer,
++		  size_t *maxlen, size_t *retlen, int *truncated,
++		  const char *format, char* args);
++#endif
+ 
+ /* format read states */
+ #define DP_S_DEFAULT    0
+@@ -165,6 +172,7 @@ static void _dopr(char **sbuffer, char *
+ #define char_to_int(p) (p - '0')
+ #define OSSL_MAX(p,q) ((p >= q) ? p : q)
+ 
++#ifndef __bare_metal__
+ static void
+ _dopr(
+     char **sbuffer,
+@@ -428,6 +436,20 @@ _dopr(
+     *retlen = currlen - 1;
+     return;
+ }
++#else
++static void
++_dopr(
++    char **sbuffer,
++    char **buffer,
++    size_t *maxlen,
++    size_t *retlen,
++    int *truncated,
++    const char *format,
++    char* args)
++{
++	return;
++}
++#endif
+ 
+ static void
+ fmtstr(
+@@ -764,7 +786,7 @@ doapr_outch(
+ }
+ 
+ /***************************************************************************/
+-
++#ifndef __bare_metal__
+ int BIO_printf (BIO *bio, const char *format, ...)
+ 	{
+ 	va_list args;
+@@ -840,3 +862,22 @@ int BIO_vsnprintf(char *buf, size_t n, c
+ 	else
+ 		return (retlen <= INT_MAX) ? (int)retlen : -1;
+ 	}
++#else
++int BIO_printf (BIO *bio, const char *format, ...)
++{
++	return(1);
++}
++int BIO_vsnprintf(char *buf, size_t n, const char *format, char* args)
++{
++	return(1);
++}
++int BIO_snprintf(char *buf, size_t n, const char *format, ...)
++{
++	return(1);
++}
++int BIO_vprintf (BIO *bio, const char *format, char* args)
++{
++	return(1);
++}
++#endif
++
+diff -purN openssl-1.0.1c/crypto/cryptlib.c openssl-newlib-1.0.1c/crypto/cryptlib.c
+--- openssl-1.0.1c/crypto/cryptlib.c	2012-01-21 17:48:29.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/cryptlib.c	2012-06-14 18:01:31.112716604 +0530
+@@ -899,6 +899,7 @@ void OPENSSL_showfatal (const char *fmta
+ 	MessageBox (NULL,buf,_T("OpenSSL: FATAL"),MB_OK|MB_ICONSTOP);
+ }
+ #else
++#ifndef __bare_metal__
+ void OPENSSL_showfatal (const char *fmta,...)
+ { va_list ap;
+ 
+@@ -906,6 +907,12 @@ void OPENSSL_showfatal (const char *fmta
+     vfprintf (stderr,fmta,ap);
+     va_end (ap);
+ }
++#else
++void OPENSSL_showfatal( const char *fmta, ...)
++{
++	return;
++}
++#endif
+ int OPENSSL_isservice (void) { return 0; }
+ #endif
+ 
+diff -purN openssl-1.0.1c/crypto/err/err.h openssl-newlib-1.0.1c/crypto/err/err.h
+--- openssl-1.0.1c/crypto/err/err.h	2011-06-06 17:19:35.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/err/err.h	2012-06-14 17:18:29.576792881 +0530
+@@ -346,7 +346,9 @@ void ERR_print_errors_fp(FILE *fp);
+ void ERR_print_errors(BIO *bp);
+ #endif
+ void ERR_add_error_data(int num, ...);
++#ifndef __bare_metal__
+ void ERR_add_error_vdata(int num, va_list args);
++#endif
+ void ERR_load_strings(int lib,ERR_STRING_DATA str[]);
+ void ERR_unload_strings(int lib,ERR_STRING_DATA str[]);
+ void ERR_load_ERR_strings(void);
+diff -purN openssl-1.0.1c/crypto/evp/evp_key.c openssl-newlib-1.0.1c/crypto/evp/evp_key.c
+--- openssl-1.0.1c/crypto/evp/evp_key.c	2011-06-04 02:22:57.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/evp/evp_key.c	2012-06-11 15:39:58.152572961 +0530
+@@ -95,6 +95,7 @@ int EVP_read_pw_string(char *buf, int le
+ 
+ int EVP_read_pw_string_min(char *buf, int min, int len, const char *prompt, int verify)
+ 	{
++#ifndef OPENSSL_NO_UI
+ 	int ret;
+ 	char buff[BUFSIZ];
+ 	UI *ui;
+@@ -110,6 +111,9 @@ int EVP_read_pw_string_min(char *buf, in
+ 	UI_free(ui);
+ 	OPENSSL_cleanse(buff,BUFSIZ);
+ 	return ret;
++#else
++	return(0);
++#endif
+ 	}
+ 
+ int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md, 
+diff -purN openssl-1.0.1c/crypto/opensslconf.h openssl-newlib-1.0.1c/crypto/opensslconf.h
+--- openssl-1.0.1c/crypto/opensslconf.h	2012-05-10 20:48:25.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/opensslconf.h	2012-06-11 15:54:08.632547830 +0530
+@@ -35,6 +35,9 @@
+ 
+ #endif /* OPENSSL_DOING_MAKEDEPEND */
+ 
++#ifndef OPENSSL_NO_HW
++# define OPENSSL_NO_HW
++#endif
+ #ifndef OPENSSL_NO_DYNAMIC_ENGINE
+ # define OPENSSL_NO_DYNAMIC_ENGINE
+ #endif
+diff -purN openssl-1.0.1c/crypto/pkcs7/bio_pk7.c openssl-newlib-1.0.1c/crypto/pkcs7/bio_pk7.c
+--- openssl-1.0.1c/crypto/pkcs7/bio_pk7.c	2008-03-13 02:44:25.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/pkcs7/bio_pk7.c	2012-06-11 15:38:24.709575720 +0530
+@@ -56,7 +56,8 @@
+ #include <openssl/pkcs7.h>
+ #include <openssl/bio.h>
+ 
+-#ifndef OPENSSL_SYSNAME_NETWARE
++/*#ifndef OPENSSL_SYSNAME_NETWARE*/
++#if !defined(OPENSSL_SYSNAME_NETWARE) && !defined(OPENSSL_SYS_NEWLIB)
+ #include <memory.h>
+ #endif
+ #include <stdio.h>
+diff -purN openssl-1.0.1c/crypto/rand/rand_egd.c openssl-newlib-1.0.1c/crypto/rand/rand_egd.c
+--- openssl-1.0.1c/crypto/rand/rand_egd.c	2008-11-12 12:57:36.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/rand/rand_egd.c	2012-06-11 15:37:26.640577440 +0530
+@@ -95,7 +95,7 @@
+  *   RAND_egd() is a wrapper for RAND_egd_bytes() with numbytes=255.
+  */
+ 
+-#if defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_NETWARE) || defined(OPENSSL_SYS_VOS) || defined(OPENSSL_SYS_BEOS)
++#if defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_NETWARE) || defined(OPENSSL_SYS_VOS) || defined(OPENSSL_SYS_BEOS) || defined(OPENSSL_SYS_NEWLIB)
+ int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
+ 	{
+ 	return(-1);
+diff -purN openssl-1.0.1c/crypto/rand/rand_unix.c openssl-newlib-1.0.1c/crypto/rand/rand_unix.c
+--- openssl-1.0.1c/crypto/rand/rand_unix.c	2011-12-19 22:32:35.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/rand/rand_unix.c	2012-06-11 15:36:43.273578716 +0530
+@@ -398,9 +398,10 @@ int RAND_poll(void)
+ 	/* put in some default random data, we need more than just this */
+ 	l=curr_pid;
+ 	RAND_add(&l,sizeof(l),0.0);
++#if !defined(OPENSSL_SYS_NEWLIB)
+ 	l=getuid();
+ 	RAND_add(&l,sizeof(l),0.0);
+-
++#endif
+ 	l=time(NULL);
+ 	RAND_add(&l,sizeof(l),0.0);
+ 
+diff -purN openssl-1.0.1c/crypto/ui/ui_openssl.c openssl-newlib-1.0.1c/crypto/ui/ui_openssl.c
+--- openssl-1.0.1c/crypto/ui/ui_openssl.c	2012-02-12 05:08:49.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/ui/ui_openssl.c	2012-06-11 16:21:02.158500153 +0530
+@@ -214,6 +214,12 @@
+ #undef SGTTY
+ #endif
+ 
++#if defined(OPENSSL_SYS_NEWLIB)
++#undef TERMIOS
++#undef TERMIO
++#undef SGTTY
++#endif
++
+ #ifdef TERMIOS
+ # include <termios.h>
+ # define TTY_STRUCT		struct termios
+@@ -238,7 +244,7 @@
+ # define TTY_set(tty,data)	ioctl(tty,TIOCSETP,data)
+ #endif
+ 
+-#if !defined(_LIBC) && !defined(OPENSSL_SYS_MSDOS) && !defined(OPENSSL_SYS_VMS) && !defined(OPENSSL_SYS_MACINTOSH_CLASSIC) && !defined(OPENSSL_SYS_SUNOS)
++#if !defined(_LIBC) && !defined(OPENSSL_SYS_MSDOS) && !defined(OPENSSL_SYS_VMS) && !defined(OPENSSL_SYS_MACINTOSH_CLASSIC) && !defined(OPENSSL_SYS_SUNOS) && !defined(OPENSSL_SYS_NEWLIB)
+ # include <sys/ioctl.h>
+ #endif
+ 
+@@ -262,7 +268,7 @@ struct IOSB {
+ 	typedef int sig_atomic_t;
+ #endif
+ 
+-#if defined(OPENSSL_SYS_MACINTOSH_CLASSIC) || defined(MAC_OS_GUSI_SOURCE) || defined(OPENSSL_SYS_NETWARE)
++#if defined(OPENSSL_SYS_MACINTOSH_CLASSIC) || defined(MAC_OS_GUSI_SOURCE) || defined(OPENSSL_SYS_NETWARE) || defined(OPENSSL_SYS_NEWLIB)
+ /*
+  * This one needs work. As a matter of fact the code is unoperational
+  * and this is only a trick to get it compiled.
+diff -purN openssl-1.0.1c/e_os2.h openssl-newlib-1.0.1c/e_os2.h
+--- openssl-1.0.1c/e_os2.h	2011-12-19 22:32:33.000000000 +0530
++++ openssl-newlib-1.0.1c/e_os2.h	2012-06-11 16:37:21.675471191 +0530
+@@ -157,6 +157,18 @@ extern "C" {
+ # define OPENSSL_SYS_OS2
+ #endif
+ 
++#if defined(__bare_metal__) && !defined(__GLIBC__)
++#undef OPENSSL_SYS_UNIX
++# define OPENSSL_SYS_NEWLIB
++# define OPENSSL_IMPLEMENTS_strncasecmp
++# define OPENSSL_NO_SOCK
++# define OPENSSL_NO_POSIX_IO
++# define NO_SYSLOG
++# define OPENSSL_NO_DGRAM
++# define OPENSSL_NO_UI
++#endif
++
++
+ /* --------------------------------- Unix ---------------------------------- */
+ #ifdef OPENSSL_SYS_UNIX
+ # if defined(linux) || defined(__linux__) || defined(OPENSSL_SYSNAME_LINUX)
+diff -purN openssl-1.0.1c/e_os.h openssl-newlib-1.0.1c/e_os.h
+--- openssl-1.0.1c/e_os.h	2011-10-11 04:03:48.000000000 +0530
++++ openssl-newlib-1.0.1c/e_os.h	2012-06-11 15:34:18.032583010 +0530
+@@ -108,6 +108,14 @@ extern "C" {
+ # endif
+ #endif
+ 
++#if defined(OPENSSL_SYS_NEWLIB)
++# undef DEVRANDOM
++# undef DEVRANDOM_EGD
++# define GETPID_IS_MEANINGLESS
++#endif
++
++
++
+ /********************************************************************
+  The Microsoft section
+  ********************************************************************/
+@@ -549,7 +557,8 @@ static unsigned int _strlen31(const char
+ #      define SHUTDOWN(fd)    { shutdown((fd),0); closesocket(fd); }
+ #      define SHUTDOWN2(fd)      { shutdown((fd),2); closesocket(fd); }
+ 
+-#  else
++/*#  else*/
++#elif !defined(OPENSSL_NO_SOCK)
+ 
+ #    ifndef NO_SYS_PARAM_H
+ #      include <sys/param.h>
+diff -purN openssl-1.0.1c/Makefile openssl-newlib-1.0.1c/Makefile
+--- openssl-1.0.1c/Makefile	2012-05-10 20:48:25.000000000 +0530
++++ openssl-newlib-1.0.1c/Makefile	2012-06-14 17:15:58.636797339 +0530
+@@ -13,8 +13,8 @@ SHLIB_MAJOR=1
+ SHLIB_MINOR=0.0
+ SHLIB_EXT=
+ PLATFORM=dist
+-OPTIONS= no-ec_nistp_64_gcc_128 no-gmp no-jpake no-krb5 no-md2 no-rc5 no-rfc3779 no-sctp no-shared no-store no-zlib no-zlib-dynamic static-engine
+-CONFIGURE_ARGS=dist
++OPTIONS=--cross-compile-prefix=$(CROSS_COMPILE_NEWLIB) no-ec_nistp_64_gcc_128 no-gmp no-hw no-jpake no-krb5 no-md2 no-rc5 no-rfc3779 no-sctp no-shared no-store no-threads no-zlib no-zlib-dynamic static-engine
++CONFIGURE_ARGS=--cross-compile-prefix=$(CROSS_COMPILE_NEWLIB) no-hw no-threads no-shared no-zlib dist
+ SHLIB_TARGET=
+ 
+ # HERE indicates where this Makefile lives.  This can be used to indicate
+@@ -59,16 +59,17 @@ OPENSSLDIR=/usr/local/ssl
+ # equal 4.
+ # PKCS1_CHECK - pkcs1 tests.
+ 
+-CC= cc
++#CROSS_COMPILE= $(CROSS_COMPILE_NEWLIB)
++CC= $(CROSS_COMPILE_NEWLIB)gcc -msoft-float -mno-thumb-interwork -marm -march=armv7-a -fno-short-enums -nostdlib -D__bare_metal__
+ CFLAG= -O
+ DEPFLAG= -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_JPAKE -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SCTP -DOPENSSL_NO_STORE
+ PEX_LIBS= 
+ EX_LIBS= 
+ EXE_EXT= 
+ ARFLAGS= 
+-AR= ar $(ARFLAGS) r
+-RANLIB= /usr/bin/ranlib
+-NM= nm
++AR= $(CROSS_COMPILE_NEWLIB)ar $(ARFLAGS) r
++RANLIB= $(CROSS_COMPILE_NEWLIB)ranlib
++NM= $(CROSS_COMPILE_NEWLIB)nm
+ PERL= /usr/bin/perl
+ TAR= tar
+ TARFLAGS= --no-recursion
+@@ -137,7 +138,8 @@ FIPSCANLIB=
+ 
+ BASEADDR=0xFB00000
+ 
+-DIRS=   crypto ssl engines apps test tools
++#DIRS=   crypto ssl engines apps test tools
++DIRS=   crypto ssl engines
+ ENGDIRS= ccgost
+ SHLIBDIRS= crypto ssl
+ 
+diff -purN openssl-1.0.1c/ssl/d1_lib.c openssl-newlib-1.0.1c/ssl/d1_lib.c
+--- openssl-1.0.1c/ssl/d1_lib.c	2012-04-18 20:23:48.000000000 +0530
++++ openssl-newlib-1.0.1c/ssl/d1_lib.c	2012-06-11 16:35:25.558474651 +0530
+@@ -68,7 +68,7 @@
+ 
+ static void get_current_time(struct timeval *t);
+ const char dtls1_version_str[]="DTLSv1" OPENSSL_VERSION_PTEXT;
+-int dtls1_listen(SSL *s, struct sockaddr *client);
++/*int dtls1_listen(SSL *s, struct sockaddr *client);*/
+ 
+ SSL3_ENC_METHOD DTLSv1_enc_data={
+     dtls1_enc,
+diff -pru openssl-1.0.1c/crypto/modes/modes.h openssl-newlib-1.0.1c/crypto/modes/modes.h
+--- openssl-1.0.1c/crypto/modes/modes.h	2011-08-12 04:06:17.000000000 +0530
++++ openssl-newlib-1.0.1c/crypto/modes/modes.h	2012-08-24 11:50:39.933733064 +0530
+@@ -5,6 +5,9 @@
+  * forms are granted according to the OpenSSL license.
+  */
+ 
++#ifndef HEADER_MODES_H_
++#define HEADER_MODES_H_
++
+ #include <stddef.h>
+ 
+ typedef void (*block128_f)(const unsigned char in[16],
+@@ -133,3 +136,5 @@ typedef struct xts128_context XTS128_CON
+ 
+ int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx, const unsigned char iv[16],
+ 	const unsigned char *inp, unsigned char *out, size_t len, int enc);
++
++#endif

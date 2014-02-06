@@ -1,0 +1,28 @@
+# Make file for crypto
+ifndef SDK_PATH
+$(error SDK_PATH must be defined before this file is included)
+endif
+
+ifndef CROSS_COMPILE_NEWLIB
+$(error CROSS_COMPILE_NEWLIB must be defined and point to a tool chain with newlib.)
+endif
+
+export CRYPTO_TAR_FILE:=openssl-1.0.1c.tar.gz
+export CRYPTO_DIR:=$(PACKAGE_BUILD_DIR)/openssl
+export OPENSSL_ORIG_DIR:=openssl-1.0.1c
+export OPENSSL_FINAL_DIR:=openssl
+
+.PHONY: all
+all: patch make
+
+make:
+	$(MAKE) -C $(CRYPTO_DIR);
+
+patch:
+	mkdir -p $(PACKAGE_BUILD_DIR); \
+	if [ ! -d ${CRYPTO_DIR} ]; then \
+	cd $(PACKAGE_BUILD_DIR) ; tar -zxf $(PACKAGE_STORAGE_DIR)/$(CRYPTO_TAR_FILE); \
+	patch -p0 < $(PACKAGE_PATCHES_DIR)/openssl.patch;\
+	mv $(OPENSSL_ORIG_DIR) $(OPENSSL_FINAL_DIR);\
+	fi
+

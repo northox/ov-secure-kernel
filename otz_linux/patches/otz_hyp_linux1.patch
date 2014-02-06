@@ -1,0 +1,29 @@
+--- ./arch/arm/mach-vexpress/include/mach/motherboard.h	2012-09-12 12:04:35.171885407 +0530
++++ ./arch/arm/mach-vexpress/include/mach/motherboard.h	2012-09-12 15:44:44.355069404 +0530
+@@ -47,7 +47,12 @@
+ #define V2M_KMI0		(V2M_PA_CS7 + V2M_PERIPH_OFFSET(6))
+ #define V2M_KMI1		(V2M_PA_CS7 + V2M_PERIPH_OFFSET(7))
+ 
++#ifdef MULTIPLE_GUESTS_SUPPORT
++#define V2M_UART0		(V2M_PA_CS7 + V2M_PERIPH_OFFSET(10))
++#else
+ #define V2M_UART0		(V2M_PA_CS7 + V2M_PERIPH_OFFSET(9))
++#endif
++
+ #define V2M_UART1		(V2M_PA_CS7 + V2M_PERIPH_OFFSET(10))
+ #define V2M_UART2		(V2M_PA_CS7 + V2M_PERIPH_OFFSET(11))
+ #define V2M_UART3		(V2M_PA_CS7 + V2M_PERIPH_OFFSET(12))
+@@ -104,7 +109,13 @@
+ #define IRQ_V2M_TIMER2		(32 + 3)
+ #define IRQ_V2M_TIMER3		(32 + 3)
+ #define IRQ_V2M_RTC		{ (32 + 4) }
++
++#ifdef MULTIPLE_GUESTS_SUPPORT
++#define IRQ_V2M_UART0		{ (32 + 6) }
++#else
+ #define IRQ_V2M_UART0		{ (32 + 5) }
++#endif
++
+ #define IRQ_V2M_UART1		{ (32 + 6) }
+ #define IRQ_V2M_UART2		{ (32 + 7) }
+ #define IRQ_V2M_UART3		{ (32 + 8) }
